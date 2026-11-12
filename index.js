@@ -1,0 +1,18 @@
+const {onCall,HttpsError}=require("firebase-functions/v2/https");
+const {setGlobalOptions}=require("firebase-functions/v2");
+const {initializeApp}=require("firebase-admin/app");
+const {getAuth}=require("firebase-admin/auth");
+const {getFirestore,Timestamp}=require("firebase-admin/firestore");
+initializeApp();setGlobalOptions({region:"asia-south1",maxInstances:10});
+const db=getFirestore(),auth=getAuth(),PERIOD=30*24*60*60*1000,DOMAIN="members.mikuportal.com";
+function admin(r){if(!r.auth)throw new HttpsError("unauthenticated","Sign in first.");if(r.auth.token.admin!==true)throw new HttpsError("permission-denied","Admin role required.");}
+function validId(s){return typeof s==="string"&&/^[A-Za-z0-9._-]{3,24}$/.test(s);}
+const email=id=>`${id.toLowerCase()}@${DOMAIN}`;
+
+exports.adminCreateMember=onCall(async r=>{admin(r);const{userId,password,note=""}=r.data||{};if(!validId(userId))throw new HttpsError("invalid-argument","User ID must be 3–24 letters, numbers, dots, underscores or hyphens.");if(typeof password!=="string"||password.length<8||password.length>128)throw new HttpsError("invalid-argument","Password must be 8–128 characters.");if(typeof note!=="string"||note.length>80)throw new HttpsError("invalid-argument","Note is too long.");try{const u=await auth.createUser({email:email(userId),password,displayName:userId});await db.collection("members").doc(u.uid).set({uid:u.uid,userId,email:email(userId),note,banned:false,createdAt:Timestamp.now(),firstActivatedAt:null,expiresAt:null});return{uid:u.uid,userId};}catch(e){if(e.code==="auth/email-already-exists")throw new HttpsError("already-exists","That User ID already exists.");console.error(e);throw new HttpsError("internal","Could not create member.");}});
+
+exports.activateMembership=onCall(async r=>{if(!r.auth)throw new HttpsError("unauthenticated","Sign in first.");const ref=db.collection("members").doc(r.auth.uid);return db.runTransaction(async tx=>{const s=await tx.get(ref);if(!s.exists)throw new HttpsError("permission-denied","This is not a portal member.");const m=s.data();if(m.banned)throw new HttpsError("permission-denied","Account disabled. Contact admin.");let start=m.firstActivatedAt?.toMillis()||null,expiry=m.expiresAt?.toMillis()||null,now=Date.now();if(!start){start=now;expiry=now+PERIOD;tx.update(ref,{firstActivatedAt:Timestamp.fromMillis(start),expiresAt:Timestamp.fromMillis(expiry)});}if(!expiry||now>=expiry)throw new HttpsError("permission-denied","Membership expired. Contact admin.");return{userId:m.userId,firstActivatedAt:start,expiresAt:expiry};});});
+
+exports.adminListMembers=onCall(async r=>{admin(r);const s=await db.collection("members").orderBy("createdAt","desc").limit(500).get(),now=Date.now();return{members:s.docs.map(d=>{const m=d.data(),expiry=m.expiresAt?.toMillis()||null;return{uid:d.id,userId:m.userId,banned:!!m.banned,activated:!!m.firstActivatedAt,expired:!!expiry&&now>=expiry,expiresAt:expiry};})};});
+exports.adminSetMemberBanned=onCall(async r=>{admin(r);const{uid,banned}=r.data||{};if(typeof uid!=="string"||typeof banned!=="boolean")throw new HttpsError("invalid-argument","Invalid status.");const ref=db.collection("members").doc(uid);if(!(await ref.get()).exists)throw new HttpsError("not-found","Member not found.");await ref.update({banned});return{ok:true};});
+exports.adminResetMemberPassword=onCall(async r=>{admin(r);const{uid,newPassword}=r.data||{};if(typeof uid!=="string"||typeof newPassword!=="string"||newPassword.length<8||newPassword.length>128)throw new HttpsError("invalid-argument","Password must be 8–128 characters.");try{await auth.updateUser(uid,{password:newPassword});}catch(e){throw new HttpsError("not-found","Member not found.");}return{ok:true};});

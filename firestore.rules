@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signedIn(){return request.auth != null;}
+  function admin(){return signedIn() && request.auth.token.admin == true;}
+  function memberValid(){return signedIn()
+   && exists(/databases/$(database)/documents/members/$(request.auth.uid))
+   && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.banned == false
+   && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.expiresAt != null
+   && request.time < get(/databases/$(database)/documents/members/$(request.auth.uid)).data.expiresAt;}
+  match /members/{uid} {
+   allow read: if admin() || (signedIn() && request.auth.uid == uid && memberValid());
+   allow write: if false;
+  }
+  match /{document=**} {allow read,write: if false;}
+ }
+}
