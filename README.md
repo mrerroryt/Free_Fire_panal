@@ -1,37 +1,33 @@
-# MIKU Premium Portal — Firebase Spark starter
+# MIKU Premium Portal — Firebase Spark / GitHub Pages
 
-This project is designed to use Firebase Authentication and Cloud Firestore on the no-cost Spark plan. It does not use Cloud Functions or Firebase Admin SDK.
+## Upload to GitHub (Android)
+1. Extract this ZIP.
+2. Open your repository: https://github.com/mrerroryt/Free_Fire_panal
+3. Upload the **contents** of this folder (`index.html`, `styles.css`, `app.js`, and `firestore.rules`) to the repository root. Do not upload an extra nested folder.
+4. Commit the changes. GitHub Pages should publish from `main` / root.
 
-## Firebase configuration
-`public/app.js` already contains the Firebase web config supplied for project `miku-portal`.
+## Firebase setup
+- Project: `miku-portal`
+- Authentication → Sign-in method → Email/Password must be enabled.
+- Authentication → Settings → Authorized domains must include `mrerroryt.github.io`.
+- Firestore collection `admin`: document ID = owner's Firebase Authentication UID; field `role` (string) = `owner`.
+- Firestore → Rules: paste the contents of `firestore.rules` and Publish.
 
-## Important: owner record
-The owner account must already exist in Firebase Authentication. In Firestore, create a document manually:
-- Collection: `admin` (singular)
-- Document ID: the owner's Firebase Authentication UID
-- Field: `role` (string) = `owner`
+The Firebase web config is already included in `app.js`. Do not upload service-account JSON, private keys, or passwords.
 
-The Firestore rules deny client writes to `admin` documents. Keep this record owner-controlled.
+## What's in this build
+- Firebase Email/Password member and owner login.
+- Browser-local Firebase Auth persistence, so refresh should restore the signed-in session on the same browser.
+- Owner can create member IDs, search members, ban and unban.
+- 30-day member validity starts at first successful login.
+- Live activity count based on authenticated users' last-seen heartbeat (online means activity within the last 2 minutes; it may take up to 45 seconds to refresh).
+- Member reviews are stored in Firestore as pending. Owner approves or hides them. Only approved, real member reviews contribute to the verified average and rating distribution chart.
+- No invented customer endorsements or fake live-user count are presented as real.
+- BigBasket is a visual-only simulation; the official website link is separate. No phone scan, spyware, virus, or security bypass is performed.
 
-## Enable Authentication
-Firebase Console → Authentication → Sign-in method → Email/Password → Enable.
-
-## Deploy
-For Firebase Hosting, use a computer with Node.js and Firebase CLI:
-1. `npm install -g firebase-tools`
-2. `firebase login`
-3. `firebase use --add` and select `miku-portal`
-4. `firebase deploy --only firestore:rules,hosting`
-
-If using Android only, you can still edit files in a code editor, but Firebase Hosting deployment is easiest from a computer or a supported cloud development environment. GitHub Pages can host the static frontend, but deploy Firestore rules separately using Firebase CLI.
-
-## Free-plan limitations
-- No Cloud Functions in this Spark-only design.
-- Member creation is done from the owner dashboard using a secondary Firebase Auth app instance.
-- Because member IDs use internal alias addresses rather than real inboxes, password resets must be handled manually from Firebase Authentication (or by creating a new member ID/password); the portal does not pretend to send reset emails.
-- Ban status and membership expiry are enforced by the portal UI and Firestore rules for profile access; this is not equivalent to disabling a Firebase Auth account server-side.
-- BigBasket panel is a visual demo only. It does not scan, bypass, or modify accounts. The button opens the official BigBasket website.
-- Membership starts at first successful login and is set to 30 days. The browser calculates the expiry timestamp; do not use this as a high-assurance billing or access-control system.
-
-## Safety
-Never upload service-account JSON files, private keys, or passwords to GitHub. The downloaded service-account JSON is not needed by this Spark-only project.
+## Important notes
+- This project uses Firebase Spark-compatible client SDK features; it does not use Cloud Functions, Firebase Admin SDK, or paid Google Cloud services.
+- Owner-created member accounts use a secondary Firebase Auth app instance so the owner stays signed in.
+- Member aliases use `@members.mikuportal.com`; password reset emails are not configured. Reset/reissue passwords manually from Firebase Authentication.
+- Firestore rules are essential. Publish the included rules before testing presence/reviews.
+- The browser calculates the 30-day expiry. This is a starter portal, not a high-assurance paid-membership or billing system.

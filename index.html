@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fff4f8"><meta name="description" content="MIKU Premium Portal — a private member space with secure sign-in and a premium cherry blossom interface."><meta name="color-scheme" content="light">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f3f6eb"><meta name="description" content="MIKU Premium Portal — a private member space with secure sign-in and a premium sage and champagne interface."><meta name="color-scheme" content="light">
 <title>MIKU Premium Portal</title><link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
     <div class="eyebrow"><span></span> YOUR PRIVATE DIGITAL GARDEN</div>
     <h1>Welcome to<br><em>MIKU Premium.</em></h1>
     <p class="hero-copy">A softer place for your member tools, exclusive access and personal dashboard.</p>
-    <div class="hero-flower">✿</div><div class="hero-caption">CHERRY BLOSSOM EDITION · 2026</div>
+    <div class="hero-flower">✿</div><div class="hero-caption">SAGE & CHAMPAGNE EDITION · 2026</div>
     <div class="circuit circuit-one"></div><div class="circuit circuit-two"></div>
   </div>
   <div class="glass auth-card">
@@ -42,6 +42,8 @@
       <div class="stat"><small>ACTIVE</small><b id="activeMembers">—</b></div>
       <div class="stat"><small>BANNED</small><b id="bannedMembers">—</b></div>
     </div>
+    <div class="stats"><div class="stat"><small>LIVE ONLINE</small><b id="adminOnlineCount">0</b></div><div class="stat"><small>VERIFIED REVIEWS</small><b id="adminReviewCount">0</b></div><div class="stat"><small>AVERAGE RATING</small><b id="adminRatingAvg">—</b></div></div>
+    <div class="review-admin"><h3>Review moderation</h3><p class="muted">Approve or hide real member reviews. Verified scores are calculated from approved reviews.</p><div id="adminReviewsList">Loading reviews…</div></div>
     <form id="createMemberForm" class="create-form">
       <div><label for="newMemberId">NEW MEMBER ID</label><input id="newMemberId" required minlength="3" maxlength="32" placeholder="e.g. member01"></div>
       <div><label for="newMemberPassword">TEMPORARY PASSWORD</label><input id="newMemberPassword" required minlength="6" placeholder="At least 6 characters"></div>
@@ -52,6 +54,15 @@
     <div class="table-scroll"><table><thead><tr><th>MEMBER ID</th><th>STATUS</th><th>VALIDITY</th><th>MANAGE</th></tr></thead><tbody id="membersTable"><tr><td colspan="4">Loading members…</td></tr></tbody></table></div>
   </section>
 
+  <section class="glass live-card">
+    <div class="live-head"><div><div class="card-kicker">COMMUNITY ACTIVITY</div><h2>Portal activity</h2><p class="muted">Live members are counted from recent authenticated activity.</p></div><div class="online-pill"><i></i><b id="onlineCount">0</b><small>ONLINE</small></div></div>
+  </section>
+  <section class="glass reviews-card">
+    <div class="review-head"><div><div class="card-kicker">MEMBER FEEDBACK</div><h2>Customer ratings</h2><p class="muted">Verified member reviews appear after owner approval.</p></div><div class="rating-summary"><b id="realRating">—</b><span id="ratingStars">☆☆☆☆☆</span><small id="ratingCount">0 verified reviews</small></div></div>
+    <div class="rating-chart" id="ratingChart"><small>VERIFIED RATING DISTRIBUTION</small><p class="muted">Chart will appear when approved reviews arrive.</p></div>\n    <form id="reviewForm" class="review-form"><label for="reviewScore">YOUR RATING</label><select id="reviewScore" required><option value="5">5 stars — Excellent</option><option value="4">4 stars — Good</option><option value="3">3 stars — Average</option><option value="2">2 stars — Poor</option><option value="1">1 star — Bad</option></select><label for="reviewText">YOUR REVIEW</label><textarea id="reviewText" maxlength="400" required placeholder="Share your experience (max 400 characters)"></textarea><button class="btn-main" type="submit">Submit review ↗</button></form>
+    <div id="reviewMessage" class="notice" role="status"></div><div id="reviewsList" class="reviews-list"></div>
+    <div class="demo-rating-note">SAMPLE / DEMO RATINGS ARE NOT INCLUDED IN VERIFIED CUSTOMER SCORES.</div>
+  </section>
   <div class="section-label"><span>YOUR PORTAL</span><i></i><small>SELECT A SECTION</small></div>
   <div class="service-grid">
     <button class="service-card featured" id="bigbasketBtn"><span class="service-icon">🛒</span><span class="service-number">01 / FEATURED</span><b>BigBasket</b><small>Open visual demo panel</small><span class="card-arrow">↗</span></button>
@@ -73,7 +84,7 @@
     <div class="demo-disclaimer">VISUAL EFFECT ONLY · NO VIRUS OR PEGASUS SOFTWARE IS RUNNING</div>
   </section>
 </section>
-<footer><span>© MIKU PORTAL · CHERRY BLOSSOM EDITION</span><span>MADE WITH CARE ✿</span></footer>
+<footer><span>© MIKU PORTAL · SAGE & CHAMPAGNE EDITION</span><span>MADE WITH CARE ✿</span></footer>
 </main>
 <script type="module" src="./app.js"></script>
 </body></html>
