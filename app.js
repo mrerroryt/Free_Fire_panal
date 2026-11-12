@@ -1,53 +1,135 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, serverTimestamp, Timestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Firebase Console > Project settings > Your apps: paste your Web App config here.
-const firebaseConfig={apiKey:"PASTE_API_KEY",authDomain:"PASTE_PROJECT_ID.firebaseapp.com",projectId:"PASTE_PROJECT_ID",appId:"PASTE_APP_ID"};
-// Preview is only for checking the UI. Set false before production deployment.
-const PREVIEW_MODE=true, PREVIEW_CODE="2323";
-const CONTACT_ADMIN_URL="mailto:owner@example.com?subject=MIKU%20Portal%20Support";
-const LOGIN_EMAIL_DOMAIN="members.mikuportal.com";
+const firebaseConfig = {
+  apiKey: "AIzaSyD_Ya9TNyqCDcMwRYrfUl7UudzPUNdji5c",
+  authDomain: "miku-portal.firebaseapp.com",
+  projectId: "miku-portal",
+  storageBucket: "miku-portal.firebasestorage.app",
+  messagingSenderId: "604192352317",
+  appId: "1:604192352317:web:ea7e18efb0f478e0e9e254",
+  measurementId: "G-CLHFK71TXS"
+};
+const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
+// Firebase is configured in this build. If startup fails, the browser console will show the exact Firebase error.
 const $=id=>document.getElementById(id);
-const ready=!firebaseConfig.apiKey.startsWith("PASTE_")&&!firebaseConfig.projectId.startsWith("PASTE_");
-let auth=null,fn=null,preview=false;
-if(ready){const app=initializeApp(firebaseConfig);auth=getAuth(app);fn=getFunctions(app);}
-function msg(id,text,ok=false){$(id).textContent=text;$(id).classList.toggle("ok",ok);}
-function toast(t){$("toast").textContent=t;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2800);}
-function view(id){["auth","member","admin"].forEach(x=>$(x).classList.add("hide"));$(id).classList.remove("hide");$("logout").classList.toggle("hide",id==="auth");}
-function errorText(e){const c=e?.code||"";if(c.includes("invalid-credential")||c.includes("user-not-found")||c.includes("wrong-password"))return"Incorrect ID or password.";if(c.includes("permission-denied"))return"Access denied. Check your account status.";if(c.includes("too-many-requests"))return"Too many attempts. Wait a moment and try again.";return e?.message||"Something went wrong.";}
-function checkFirebase(){if(!ready){toast("Add Firebase Web config in public/app.js first.");return false;}return true;}
-const alias=id=>`${id.trim().toLowerCase()}@${LOGIN_EMAIL_DOMAIN}`;
-async function memberLogin(){
- msg("memberMsg","");if(!checkFirebase())return;
- const id=$("uid").value.trim(),password=$("upass").value;
- if(!/^[A-Za-z0-9._-]{3,24}$/.test(id)||!password){msg("memberMsg","Enter a valid User ID and password.");return;}
- $("memberLogin").disabled=true;
- try{await signInWithEmailAndPassword(auth,alias(id),password);const r=await httpsCallable(fn,"activateMembership")({});showMember(r.data);}
- catch(e){msg("memberMsg",errorText(e));if(auth.currentUser)await signOut(auth);}
- finally{$("memberLogin").disabled=false;}
+const LOGIN_DOMAIN="@members.mikuportal.com";
+let mode="member", secondaryApp=null, memberCache=[];
+const emailFor=id=>{const value=id.trim().toLowerCase();return value.includes("@")?value:value.replace(/\s+/g,"")+LOGIN_DOMAIN;};
+const say=(id,text,bad=false)=>{const el=$(id);el.textContent=text;el.style.color=bad?"#b4234d":"#a94e70";};
+const show=id=>$(id).classList.remove("hidden"), hide=id=>$(id).classList.add("hidden");
+
+document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{
+ mode=btn.dataset.mode;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b===btn));
+ $("authTitle").textContent=mode==="admin"?"Owner sign in":"Welcome back";
+ $("authHint").textContent=mode==="admin"?"Sign in with your private owner ID.":"Enter the member ID provided by your owner.";
+ $("loginId").placeholder=mode==="admin"?"Owner email or ID":"Member ID";$("loginForm").querySelector("label[for=loginId]").textContent=mode==="admin"?"ADMIN EMAIL / ID":"MEMBER ID";say("authMessage","");
+}));
+
+$("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();say("authMessage","Verifying ID and password…");
+ const id=$("loginId").value.trim();
+ try{
+  const cred=await signInWithEmailAndPassword(auth,emailFor(id),$("loginPassword").value);
+  const uid=cred.user.uid, ownerSnap=await getDoc(doc(db,"admin",uid));
+  if(mode==="admin"){
+   if(!ownerSnap.exists()||ownerSnap.data().role!=="owner"){await signOut(auth);throw Error("Owner access not found for this account.");}
+   openDashboard(id,true);return;
+  }
+  if(ownerSnap.exists()){await signOut(auth);throw Error("Please use Admin Login for this ID.");}
+  const ref=doc(db,"members",uid);let snap=await getDoc(ref);
+  if(!snap.exists()){await signOut(auth);throw Error("Member profile is not active yet. Contact the owner.");}
+  let d=snap.data();
+  if(d.status!=="active"){await signOut(auth);throw Error("ID VALIDATION WARNING: This member ID is banned or inactive.");}
+  if(!d.firstLoginAt){
+   await runTransaction(db,async tx=>{
+    const fresh=await tx.get(ref);
+    if(!fresh.data().firstLoginAt){
+     const now=Timestamp.now();
+     tx.update(ref,{firstLoginAt:serverTimestamp(),expiresAt:Timestamp.fromMillis(now.toMillis()+30*86400000)});
+    }
+   });
+   snap=await getDoc(ref);d=snap.data();
+  }
+  if(d.expiresAt&&d.expiresAt.toMillis()<=Date.now()){await signOut(auth);throw Error("ID VALIDATION WARNING: Your 30-day membership has expired.");}
+  openDashboard(id,false,d);
+ }catch(err){say("authMessage",err.message||"Login failed.",true);}
+});
+
+function openDashboard(id,isOwner,d={}){
+ hide("authView");show("dashboardView");$("welcomeName").textContent=id;
+ if(isOwner){$("membershipInfo").textContent="Owner account · Full member management";show("adminTools");hide("memberStatus");loadMembers();}
+ else{
+  hide("adminTools");show("memberStatus");
+  $("membershipInfo").textContent="Member access · Your private portal";
+  const expiry=d.expiresAt?.toDate();updateCountdown(expiry);
+  $("statusTitle").textContent="Membership active";
+  $("statusDetail").textContent=expiry?"Your ID is valid until "+expiry.toLocaleString():"30-day access period has started.";
+ }
 }
-async function adminLogin(){
- msg("adminMsg","");if(!checkFirebase())return;
- $("adminLogin").disabled=true;
- try{const c=await signInWithEmailAndPassword(auth,$("aemail").value.trim(),$("apass").value);const token=await c.user.getIdTokenResult(true);if(token.claims.admin!==true){await signOut(auth);throw Error("This account has not been granted the Firebase admin role.");}preview=false;view("admin");await listMembers();}
- catch(e){msg("adminMsg",errorText(e));}finally{$("adminLogin").disabled=false;}
+function updateCountdown(expiry){
+ if(!expiry){$("countdown").textContent="30 DAYS";return;}
+ const left=Math.max(0,expiry.getTime()-Date.now()),days=Math.floor(left/86400000),hours=Math.floor(left%86400000/3600000);
+ $("countdown").textContent=left<=0?"EXPIRED":`${days}D ${hours}H`;
+ if(left<=0){$("statusTitle").textContent="Membership expired";$("statusDetail").textContent="Contact the portal owner to renew access.";}
 }
-function showMember(data){view("member");const expiry=data.expiresAt?new Date(data.expiresAt):null;$("validity").textContent=expiry?Math.max(0,Math.ceil((expiry-Date.now())/86400000))+" DAYS LEFT":"30 DAYS";$("validDate").textContent=expiry?"Valid until "+expiry.toLocaleDateString():"Preview access";}
-function previewLogin(){if(!PREVIEW_MODE){toast("Preview mode is disabled.");return;}const code=prompt("Enter preview code");if(code!==PREVIEW_CODE){toast("Wrong preview code.");return;}preview=true;showMember({expiresAt:Date.now()+30*86400000});}
-async function logout(){if(auth?.currentUser)await signOut(auth);preview=false;view("auth");}
-async function createMember(e){e.preventDefault();if(!checkFirebase())return;const btn=e.submitter;btn.disabled=true;msg("createMsg","");try{const r=await httpsCallable(fn,"adminCreateMember")({userId:$("newId").value.trim(),password:$("newPass").value,note:$("newNote").value.trim()});msg("createMsg","Created "+r.data.userId+". Share credentials privately.",true);$("createForm").reset();await listMembers();}catch(err){msg("createMsg",errorText(err));}finally{btn.disabled=false;}}
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-async function listMembers(){if(preview){$("users").innerHTML='<tr><td colspan="4">Firebase is not connected in preview mode.</td></tr>';return;}try{const r=await httpsCallable(fn,"adminListMembers")({}),members=r.data.members||[];$("total").textContent=members.length;$("active").textContent=members.filter(m=>!m.banned&&!m.expired).length;$("banned").textContent=members.filter(m=>m.banned).length;$("users").innerHTML=members.length?"":'<tr><td colspan="4">No member accounts yet.</td></tr>';for(const m of members){const status=m.banned?"BANNED":m.expired?"EXPIRED":m.activated?"ACTIVE":"NOT STARTED";const tr=document.createElement("tr");tr.innerHTML=`<td>${esc(m.userId)}</td><td><span class="status ${m.banned?"ban":"act"}">${status}</span></td><td>${m.expiresAt?new Date(m.expiresAt).toLocaleDateString():"—"}</td><td><button class="action" data-do="ban" data-uid="${m.uid}" data-value="${!m.banned}">${m.banned?"UNBAN":"BAN"}</button><button class="action" data-do="reset" data-uid="${m.uid}" data-user="${esc(m.userId)}">RESET PW</button></td>`;$("users").appendChild(tr);}}catch(e){toast(errorText(e));}}
-async function rowAction(e){const b=e.target.closest("button[data-do]");if(!b)return;try{if(b.dataset.do==="ban"){await httpsCallable(fn,"adminSetMemberBanned")({uid:b.dataset.uid,banned:b.dataset.value==="true"});toast("Account status updated.");}else{const p=prompt("New password for "+b.dataset.user+" (minimum 8 characters):");if(!p)return;if(p.length<8){toast("Password must be at least 8 characters.");return;}await httpsCallable(fn,"adminResetMemberPassword")({uid:b.dataset.uid,newPassword:p});toast("Password changed.");}await listMembers();}catch(e){toast(errorText(e));}}
-function contact(){if(CONTACT_ADMIN_URL.includes("owner@example.com")){toast("Set CONTACT_ADMIN_URL in public/app.js.");return;}window.open(CONTACT_ADMIN_URL,"_blank","noopener");}
-function bigBasket(){ $("modal").classList.remove("hide");$("progress").style.width="0";$("log").textContent="Starting visual demo…";$("applied").classList.add("hide");$("enable").classList.add("hide");$("openApp").classList.add("hide");$("toggle").classList.remove("on");$("date").textContent=new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"});const caps=["PREPARING DISPLAY","LOADING PANEL DESIGN","CHECKING VISUAL ELEMENTS","READY"],logs=["Loading interface components…","Rendering circular status animation…","Finishing visual demo…","Demo ready."];let i=0;const t=setInterval(()=>{i++;$("progress").style.width=i*25+"%";$("caption").textContent=caps[i-1];$("log").textContent+="\n"+logs[i-1];if(i===4){clearInterval(t);$("applied").classList.remove("hide");$("enable").classList.remove("hide");}},500);}
-function petals(){const layer=$("petals"),s=["🌸","✿","❀","✧"];for(let i=0;i<20;i++){const p=document.createElement("span");p.className="petal";p.textContent=s[i%s.length];p.style.left=Math.random()*100+"%";p.style.fontSize=10+Math.random()*13+"px";p.style.animationDuration=14+Math.random()*18+"s";p.style.animationDelay=-Math.random()*28+"s";p.style.setProperty("--drift",(Math.random()*24-12)+"vw");layer.appendChild(p);}}
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));$("memberForm").classList.toggle("hide",b.dataset.tab!=="member");$("adminForm").classList.toggle("hide",b.dataset.tab!=="admin");});
-document.querySelectorAll("[data-show]").forEach(b=>b.onclick=()=>{const i=$(b.dataset.show);i.type=i.type==="password"?"text":"password";b.textContent=i.type==="password"?"SHOW":"HIDE";});
-$("memberLogin").onclick=memberLogin;$("adminLogin").onclick=adminLogin;$("preview").onclick=previewLogin;$("logout").onclick=logout;
-$("createForm").onsubmit=createMember;$("refresh").onclick=listMembers;$("users").onclick=rowAction;
-$("freefire").onclick=contact;$("instamart").onclick=contact;$("bigbasket").onclick=bigBasket;
-$("close").onclick=()=>$("modal").classList.add("hide");$("modal").onclick=e=>{if(e.target===$("modal"))$("modal").classList.add("hide");};
-$("toggle").onclick=()=>{$("toggle").classList.toggle("on");$("openApp").classList.toggle("hide",!$("toggle").classList.contains("on"));};
-petals();if(!PREVIEW_MODE)$("preview").classList.add("hide");if(!ready)msg("memberMsg","Firebase not configured yet. Use Preview design (code 2323) to inspect the interface.");
+$("logoutBtn").addEventListener("click",async()=>{await signOut(auth);hide("dashboardView");show("authView");$("loginPassword").value="";});
+
+$("createMemberForm").addEventListener("submit",async e=>{
+ e.preventDefault();say("adminMessage","Creating member ID…");
+ const username=$("newMemberId").value.trim().toLowerCase().replace(/\s+/g,""),password=$("newMemberPassword").value;
+ if(!/^[a-z0-9._-]{3,32}$/.test(username)){say("adminMessage","ID must be 3–32 characters: letters, numbers, dot, _ or -.",true);return;}
+ try{
+  if(!secondaryApp)secondaryApp=initializeApp(firebaseConfig,"mikuSecondaryAuth");
+  const secondaryAuth=getAuth(secondaryApp);
+  const cred=await createUserWithEmailAndPassword(secondaryAuth,emailFor(username),password);
+  await setDoc(doc(db,"members",cred.user.uid),{username,email:emailFor(username),status:"active",createdAt:serverTimestamp(),firstLoginAt:null,expiresAt:null});
+  await signOut(secondaryAuth);
+  $("newMemberId").value="";$("newMemberPassword").value="";
+  say("adminMessage",`Member ID "${username}" created. Share the temporary password privately.`);loadMembers();
+ }catch(err){say("adminMessage",err.message||"Member creation failed.",true);}
+});
+
+async function loadMembers(){
+ const body=$("membersTable");body.innerHTML="<tr><td colspan='4'>Loading…</td></tr>";
+ try{
+  const snap=await getDocs(collection(db,"members"));memberCache=[];
+  snap.forEach(s=>memberCache.push({uid:s.id,...s.data()}));
+  $("totalMembers").textContent=memberCache.length;
+  $("activeMembers").textContent=memberCache.filter(x=>x.status==="active").length;
+  $("bannedMembers").textContent=memberCache.filter(x=>x.status!=="active").length;
+  renderMembers();
+ }catch(err){body.innerHTML=`<tr><td colspan="4">${escapeHtml(err.message)}</td></tr>`;}
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function renderMembers(){
+ const body=$("membersTable"),term=$("memberSearch").value.trim().toLowerCase();body.innerHTML="";
+ const list=memberCache.filter(m=>(m.username||"").toLowerCase().includes(term));
+ if(!list.length){body.innerHTML="<tr><td colspan='4'>No matching members.</td></tr>";return;}
+ list.forEach(m=>{
+  const tr=document.createElement("tr"),valid=m.expiresAt?.toDate().toLocaleDateString()||"Starts on first login";
+  tr.innerHTML=`<td>${escapeHtml(m.username||"member")}</td><td>${m.status==="active"?"<span class='good'>ACTIVE</span>":"<span class='bad'>BANNED</span>"}</td><td>${escapeHtml(valid)}</td><td></td>`;
+  const actions=tr.lastElementChild,ban=document.createElement("button");ban.className="action-btn";ban.textContent=m.status==="active"?"Ban ID":"Unban ID";
+  ban.onclick=async()=>{try{await updateDoc(doc(db,"members",m.uid),{status:m.status==="active"?"banned":"active"});say("adminMessage",`${m.username} status updated.`);loadMembers();}catch(e){say("adminMessage",e.message,true);}};
+  const copy=document.createElement("button");copy.className="action-btn";copy.textContent="Copy ID";
+  copy.onclick=async()=>{try{await navigator.clipboard.writeText(m.username||"");say("adminMessage",`Copied member ID: ${m.username}`);}catch(e){say("adminMessage","Copy is unavailable in this browser. You can select the ID from the list.");}};
+  actions.append(ban,copy);body.append(tr);
+ });
+}
+$("refreshMembers").addEventListener("click",loadMembers);$("memberSearch").addEventListener("input",renderMembers);
+
+$("bigbasketBtn").addEventListener("click",()=>{show("bigbasketPanel");$("bigbasketPanel").scrollIntoView({behavior:"smooth",block:"start"});});
+$("closePanel").addEventListener("click",()=>hide("bigbasketPanel"));
+let demoTimer=null;
+$("runDemo").addEventListener("click",()=>{
+ if(demoTimer)clearInterval(demoTimer);
+ const bar=$("progressBar"),title=$("demoTitle"),text=$("demoText"),label=$("progressLabel"),percent=$("progressPercent");
+ let n=0;$("runDemo").disabled=true;$("runDemo").textContent="Simulation running…";
+ title.textContent="Running visual simulation";text.textContent="Decorative cyber-style animation only. No Pegasus spyware, virus, phone scan, account access or security bypass is being run.";
+ label.textContent="SIMULATION";percent.textContent="0%";bar.style.width="0%";
+ demoTimer=setInterval(()=>{n=Math.min(100,n+5);bar.style.width=n+"%";percent.textContent=n+"%";if(n===100){clearInterval(demoTimer);title.textContent="DEMO COMPLETED";text.textContent="Visual sequence completed. Enable the official link below if you want to visit BigBasket.";label.textContent="COMPLETE";$("runDemo").disabled=false;$("runDemo").textContent="Replay visual demo ↻";}},120);
+});
+$("demoToggle").addEventListener("change",e=>$("bigbasketLink").classList.toggle("disabled",!e.target.checked));
+$("instamartBtn").addEventListener("click",()=>alert("Instamart — Coming Soon"));
+$("freefireBtn").addEventListener("click",()=>alert("Please contact your portal owner for Free Fire access."));

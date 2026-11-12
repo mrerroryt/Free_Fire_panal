@@ -1,23 +1,79 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fff6fa"><title>MIKU | Private Portal</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="styles.css"></head><body><div id="petals"></div><div class="app">
-<header><a class="brand"><i>M</i><span><b>MIKU</b><small>PRIVATE MEMBER PORTAL</small></span></a><span class="secure">● SECURE ACCESS</span><button id="logout" class="logout hide">SIGN OUT ↗</button></header>
-<main>
-<section id="auth" class="auth">
-<div class="hero"><small>✿ &nbsp; A PRIVATE SPACE, BEAUTIFULLY BUILT</small><h1>Access, with a little<br><em>more elegance.</em></h1><p>Welcome to your private member experience.</p></div>
-<div class="login card"><nav><button class="tab active" data-tab="member">MEMBER LOGIN</button><button class="tab" data-tab="admin">ADMIN LOGIN</button></nav>
-<div id="memberForm"><div class="formhead"><i>✿</i><span><b>Welcome back</b><small>Sign in with details shared by the owner.</small></span></div><label>USER ID</label><input id="uid" placeholder="Enter your user ID" autocomplete="username"><label>PASSWORD</label><div class="pass"><input id="upass" type="password" placeholder="Enter your password" autocomplete="current-password"><button data-show="upass">SHOW</button></div><button class="primary" id="memberLogin">SIGN IN TO PORTAL <b>→</b></button><div class="msg" id="memberMsg"></div><p class="hint">Membership starts on your first successful sign-in.</p></div>
-<div id="adminForm" class="hide"><div class="formhead"><i class="adminico">✧</i><span><b>Owner console</b><small>Administrator access is verified by Firebase.</small></span></div><label>ADMIN EMAIL</label><input id="aemail" type="email" placeholder="Owner email address" autocomplete="username"><label>ADMIN PASSWORD</label><div class="pass"><input id="apass" type="password" placeholder="Enter admin password" autocomplete="current-password"><button data-show="apass">SHOW</button></div><button class="primary" id="adminLogin">SECURE ADMIN LOGIN <b>→</b></button><div class="msg" id="adminMsg"></div><p class="hint">Only Firebase accounts granted the admin role can enter.</p></div>
-<div class="authfoot">🌸 &nbsp; PRIVATE ACCESS · MEMBERS ONLY</div></div><button class="preview" id="preview">Preview design with demo code <b>2323</b></button></section>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fff4f8"><meta name="description" content="MIKU Premium Portal — a private member space with secure sign-in and a premium cherry blossom interface."><meta name="color-scheme" content="light">
+<title>MIKU Premium Portal</title><link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="petal-layer" aria-hidden="true"></div>
+<main class="shell">
+<header class="topbar"><a class="brand" href="#"><span class="brand-flower">✿</span><span>MIKU <b>PORTAL</b><small>PREMIUM MEMBER SPACE</small></span></a><span class="top-chip">PRIVATE ACCESS <i></i></span></header>
 
-<section id="member" class="hide"><div class="heading"><div><small>MEMBER WORKSPACE</small><h1>Good to see you<span>.</span></h1><p>Choose a section to continue.</p></div><aside><small>MEMBERSHIP VALIDITY</small><b id="validity">30 DAYS</b><small id="validDate">Starts on first sign-in</small></aside></div>
-<div class="services">
-<article class="service"><div class="servtop"><i class="ff">FF</i><label>AVAILABLE</label></div><small>GAMING SECTION</small><h2>Free Fire</h2><p>Contact the portal owner for availability and member support.</p><button id="freefire">CONTACT ADMIN ↗</button></article>
-<article class="service"><div class="servtop"><i class="bb">bb</i><label>AVAILABLE</label></div><small>GROCERY SECTION</small><h2>BigBasket</h2><p>Open a polished demo panel with circular loading animation and official-site link.</p><button id="bigbasket">OPEN SECTION →</button></article>
-<article class="service"><div class="servtop"><i class="im">iM</i><label class="locked">COMING SOON</label></div><small>QUICK COMMERCE</small><h2>Instamart</h2><p>This section is reserved for a future update. Contact the owner.</p><button id="instamart">CONTACT ADMIN ↗</button></article></div><footer>MIKU PRIVATE PORTAL <span>PERSONALISED · TIME-LIMITED ACCESS</span></footer></section>
+<section id="authView" class="auth-grid">
+  <div class="hero">
+    <div class="eyebrow"><span></span> YOUR PRIVATE DIGITAL GARDEN</div>
+    <h1>Welcome to<br><em>MIKU Premium.</em></h1>
+    <p class="hero-copy">A softer place for your member tools, exclusive access and personal dashboard.</p>
+    <div class="hero-flower">✿</div><div class="hero-caption">CHERRY BLOSSOM EDITION · 2026</div>
+    <div class="circuit circuit-one"></div><div class="circuit circuit-two"></div>
+  </div>
+  <div class="glass auth-card">
+    <div class="login-tabs"><button class="tab active" data-mode="member">Member Login</button><button class="tab" data-mode="admin">Admin Login</button></div>
+    <div class="card-kicker">SECURE SIGN IN</div><h2 id="authTitle">Welcome back</h2><p id="authHint" class="muted">Enter the member ID provided by your owner.</p>
+    <form id="loginForm">
+      <label for="loginId">MEMBER / ADMIN ID</label><input id="loginId" autocomplete="username" placeholder="Enter your ID" required>
+      <label for="loginPassword">PASSWORD</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter password" required>
+      <button class="btn-main" type="submit">Enter portal <span>↗</span></button>
+    </form>
+    <div id="authMessage" class="notice" role="status"></div>
+    <div class="secure-note"><span>✧</span> Your access is protected by Firebase Authentication.</div>
+  </div>
+</section>
 
-<section id="admin" class="hide"><div class="heading"><div><small>OWNER CONTROL CENTRE</small><h1>Admin dashboard<span>.</span></h1><p>Manage member accounts and portal access.</p></div><label class="admin-badge">✧ FIREBASE VERIFIED ADMIN</label></div>
-<div class="stats"><div><small>TOTAL MEMBERS</small><b id="total">—</b></div><div><small>ACTIVE ACCOUNTS</small><b id="active">—</b></div><div><small>BANNED ACCOUNTS</small><b id="banned">—</b></div></div>
-<div class="admin-grid"><section class="card create"><small>MEMBER MANAGEMENT</small><h2>Create new member</h2><form id="createForm"><label>USER ID</label><input id="newId" required minlength="3" maxlength="24" pattern="[A-Za-z0-9._-]+" placeholder="e.g. member_001"><label>TEMPORARY PASSWORD</label><input id="newPass" type="password" required minlength="8" placeholder="At least 8 characters"><label>MEMBER NOTE · OPTIONAL</label><input id="newNote" maxlength="80" placeholder="Premium member"><button class="primary">CREATE MEMBER ACCOUNT <b>＋</b></button><div class="msg" id="createMsg"></div></form><p class="notice"><b>30-DAY ACCESS</b><br>Countdown starts on the member's first successful login.</p></section>
-<section class="card directory"><div class="dirhead"><div><small>ACCOUNT DIRECTORY</small><h2>Member accounts</h2></div><button id="refresh">↻ Refresh</button></div><div class="tablewrap"><table><thead><tr><th>USER ID</th><th>STATUS</th><th>VALID UNTIL</th><th>ACTIONS</th></tr></thead><tbody id="users"><tr><td colspan="4">Connect Firebase to manage members.</td></tr></tbody></table></div><p class="hint">Password resets take effect immediately. Share new passwords privately.</p></section></div><footer>OWNER CONTROL CENTRE <span>SERVER-VERIFIED ACCOUNT CHANGES</span></footer></section>
-</main></div>
-<div id="modal" class="modal hide"><section><button class="x" id="close">×</button><small>BIGBASKET · MEMBER DEMO</small><h2>Preparing your panel</h2><p>A visual-only animation. No device scan, virus or security bypass is performed.</p><div class="loader"><div class="orbit o1"></div><div class="orbit o2"></div><div class="core">bb</div><b id="caption">INITIALISING</b></div><div class="track"><i id="progress"></i></div><pre id="log">Starting visual demo…</pre><h3 id="applied" class="hide">PANEL APPLIED SUCCESSFULLY ✓</h3><div id="enable" class="enable hide"><span><b>ENABLE PANEL</b><small>Switch on to reveal official BigBasket link.</small></span><button id="toggle"></button></div><p class="date">SESSION DATE <b id="date"></b></p><a id="openApp" class="primary hide" href="https://www.bigbasket.com/" target="_blank" rel="noopener">OPEN BIGBASKET ↗</a></section></div><div id="toast"></div>
-<script type="module" src="app.js"></script></body></html>
+<section id="dashboardView" class="hidden">
+  <div class="dash-heading"><div><div class="eyebrow"><span></span> PRIVATE MEMBER SPACE</div><h1>Good to see you, <em id="welcomeName">Member</em></h1><p class="muted" id="membershipInfo">Your portal is ready.</p></div><button id="logoutBtn" class="btn-quiet">Log out ↗</button></div>
+
+  <section id="memberStatus" class="status-strip hidden"><div><span class="status-dot"></span><b id="statusTitle">Membership active</b><small id="statusDetail">Your access is ready.</small></div><div class="countdown" id="countdown">30 DAYS</div></section>
+
+  <section id="adminTools" class="glass admin-card hidden">
+    <div class="admin-head"><div><div class="card-kicker">OWNER CONTROL CENTER</div><h2>Admin Dashboard</h2><p class="muted">Manage portal members and access status.</p></div><span class="owner-pill">✦ OWNER</span></div>
+    <div class="stats">
+      <div class="stat"><small>TOTAL MEMBERS</small><b id="totalMembers">—</b></div>
+      <div class="stat"><small>ACTIVE</small><b id="activeMembers">—</b></div>
+      <div class="stat"><small>BANNED</small><b id="bannedMembers">—</b></div>
+    </div>
+    <form id="createMemberForm" class="create-form">
+      <div><label for="newMemberId">NEW MEMBER ID</label><input id="newMemberId" required minlength="3" maxlength="32" placeholder="e.g. member01"></div>
+      <div><label for="newMemberPassword">TEMPORARY PASSWORD</label><input id="newMemberPassword" required minlength="6" placeholder="At least 6 characters"></div>
+      <button class="btn-main" type="submit">＋ Create ID</button>
+    </form>
+    <div id="adminMessage" class="notice"></div>
+    <div class="member-tools"><h3>Member management</h3><input id="memberSearch" class="search" placeholder="Search member ID…"><button id="refreshMembers" class="btn-quiet compact">Refresh ↻</button></div>
+    <div class="table-scroll"><table><thead><tr><th>MEMBER ID</th><th>STATUS</th><th>VALIDITY</th><th>MANAGE</th></tr></thead><tbody id="membersTable"><tr><td colspan="4">Loading members…</td></tr></tbody></table></div>
+  </section>
+
+  <div class="section-label"><span>YOUR PORTAL</span><i></i><small>SELECT A SECTION</small></div>
+  <div class="service-grid">
+    <button class="service-card featured" id="bigbasketBtn"><span class="service-icon">🛒</span><span class="service-number">01 / FEATURED</span><b>BigBasket</b><small>Open visual demo panel</small><span class="card-arrow">↗</span></button>
+    <button class="service-card" id="instamartBtn"><span class="service-icon">⚡</span><span class="service-number">02 / COMING SOON</span><b>Instamart</b><small>Access is being prepared</small><span class="card-arrow">↗</span></button>
+    <button class="service-card" id="freefireBtn"><span class="service-icon">🎮</span><span class="service-number">03 / SUPPORT</span><b>Free Fire</b><small>Contact portal admin</small><span class="card-arrow">↗</span></button>
+  </div>
+
+  <section id="bigbasketPanel" class="glass demo-card hidden">
+    <div class="demo-head"><div><div class="card-kicker">BIGBASKET · VISUAL EXPERIENCE</div><h2>Panel launch sequence</h2></div><button id="closePanel" class="btn-quiet compact">Close ×</button></div>
+    <div class="demo-stage">
+      <div class="orbit-wrap"><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="core"><span>✿</span><b>MIKU</b><small>DEMO CORE</small></div><div class="orbit-dot"></div></div>
+      <div class="demo-copy"><div class="simulation-label"><i></i> SIMULATION MODE ONLY</div><h3 id="demoTitle">Ready to launch</h3><p id="demoText">Press launch to play a fictional cyber-themed animation. This does not scan your phone, run spyware, access accounts or bypass security.</p>
+      <div class="progress-track"><span id="progressBar"></span></div><div class="progress-meta"><span id="progressLabel">STANDBY</span><span id="progressPercent">0%</span></div>
+      <button id="runDemo" class="btn-main">Launch visual demo <span>↗</span></button>
+      <label class="enable-row"><input type="checkbox" id="demoToggle"><span class="switch"></span><span><b>Enable BigBasket link</b><small>Unlocks the official website link after the demo.</small></span></label>
+      <a id="bigbasketLink" class="btn-main official-link disabled" href="https://www.bigbasket.com/" target="_blank" rel="noopener">Open official BigBasket ↗</a>
+      </div>
+    </div>
+    <div class="demo-disclaimer">VISUAL EFFECT ONLY · NO VIRUS OR PEGASUS SOFTWARE IS RUNNING</div>
+  </section>
+</section>
+<footer><span>© MIKU PORTAL · CHERRY BLOSSOM EDITION</span><span>MADE WITH CARE ✿</span></footer>
+</main>
+<script type="module" src="./app.js"></script>
+</body></html>

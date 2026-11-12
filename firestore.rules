@@ -1,17 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
- match /databases/{database}/documents {
-  function signedIn(){return request.auth != null;}
-  function admin(){return signedIn() && request.auth.token.admin == true;}
-  function memberValid(){return signedIn()
-   && exists(/databases/$(database)/documents/members/$(request.auth.uid))
-   && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.banned == false
-   && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.expiresAt != null
-   && request.time < get(/databases/$(database)/documents/members/$(request.auth.uid)).data.expiresAt;}
-  match /members/{uid} {
-   allow read: if admin() || (signedIn() && request.auth.uid == uid && memberValid());
-   allow write: if false;
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isOwner() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admin/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admin/$(request.auth.uid)).data.role == "owner";
+    }
+    match /admin/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+    match /members/{uid} {
+      allow read: if isOwner() || (signedIn() && request.auth.uid == uid);
+      allow create, delete: if isOwner();
+      allow update: if isOwner()
+        || (signedIn() && request.auth.uid == uid
+            && resource.data.status == "active"
+            && resource.data.firstLoginAt == null
+            && request.resource.data.firstLoginAt == request.time
+            && request.resource.data.expiresAt > request.time
+            && request.resource.data.expiresAt <= request.time + duration.value(30, "d")
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["firstLoginAt","expiresAt"]));
+    }
   }
-  match /{document=**} {allow read,write: if false;}
- }
 }
