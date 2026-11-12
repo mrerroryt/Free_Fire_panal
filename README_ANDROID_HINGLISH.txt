@@ -22,3 +22,7 @@ LOGIN NOTES
 - Member alias emails do not receive password reset emails. Reset passwords manually in Firebase Authentication.
 - Never upload service-account JSON, private keys, passwords, or recovery codes to GitHub.
 - Designed for Firebase Spark free plan and GitHub Pages.
+
+
+IMPORTANT - Firebase API key error
+The Firebase config values currently embedded in public/app.js match the config pasted by the owner on 2026-11-12. Re-uploading this same key cannot by itself fix auth/api-key-not-valid. If the error continues, the key may be invalid/deleted or restricted in Google Cloud credentials, or it may not belong to this Firebase project. Check Firebase Console > Project settings > General > Your apps and compare the Web app config. In Google Cloud Console > APIs & Services > Credentials, check that the matching API key exists and is not restricted in a way that blocks Identity Toolkit. Also ensure Identity Toolkit API is enabled for this project. These checks do not require upgrading Firebase to Blaze or adding billing. Never share passwords or service-account private keys.

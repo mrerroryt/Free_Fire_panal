@@ -3,7 +3,7 @@ import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPas
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, serverTimestamp, Timestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD_Ya9TNyqCDcMwRYrfUl7UudzPUNdji5c",
+  apiKey: "AIzaSyD_Ya9TNyqCDcMwRYrfUl7UudzpUNdji5c",
   authDomain: "miku-portal.firebaseapp.com",
   projectId: "miku-portal",
   storageBucket: "miku-portal.firebasestorage.app",
