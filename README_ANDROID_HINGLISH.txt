@@ -1,27 +1,30 @@
-MIKU PORTAL — ANDROID UPLOAD GUIDE
+MIKU PORTAL — ANDROID / GITHUB PAGES GUIDE
 
-1) ZIP ko Android phone me extract karo.
-2) GitHub app/browser me repository kholo:
-   https://github.com/mrerroryt/Free_Fire_panal
-3) Add file → Upload files par jao.
-4) Extracted folder ke andar ki files select karo:
-   index.html, styles.css, app.js, firestore.rules
-   Folder ko as-it-is upload mat karna; files repository ke ROOT me honi chahiye.
-5) Commit changes dabao.
-6) Firebase Console → Firestore Database → Rules kholo.
-7) ZIP ke firestore.rules ka poora text paste karke Publish karo.
-8) GitHub Pages site reload karo. Browser cache ho to private/incognito tab me bhi test kar sakte ho.
+WHAT'S INCLUDED
+- index.html, styles.css, app.js: upload these three files to the ROOT of your GitHub repository.
+- firestore.rules: publish these rules in Firebase Console > Firestore Database > Rules.
+- Firebase Email/Password Authentication is used; no billing upgrade is required for this code.
 
-FIREBASE CHECK:
-- Authentication me Email/Password enabled ho.
-- Authorized domains me mrerroryt.github.io ho.
-- Firestore collection `admin` me owner UID document aur role = owner ho.
-- Service account JSON/private keys GitHub par kabhi upload mat karna.
+UPLOAD FROM ANDROID
+1. Download and extract MIKU_PORTAL_REFRESH_FIXED_PREMIUM.zip.
+2. Open https://github.com/mrerroryt/Free_Fire_panal
+3. Choose Add file > Upload files.
+4. Upload index.html, styles.css and app.js directly into the repository ROOT (not inside another folder).
+5. Commit changes and wait for GitHub Pages to publish.
+6. Open the site, sign in once, then refresh. The signed-in dashboard should restore automatically in the same browser.
 
-IS VERSION ME:
-- Refresh ke baad Firebase session restore.
-- Sage green + champagne yellow theme.
-- Live activity count (last 2 minutes heartbeat).
-- Real member reviews: pending until admin approval.
-- Verified average + rating chart only approved reviews se.
-- BigBasket panel visual simulation only; real phone scan/virus nahi.
+FIREBASE CHECK
+- Firebase Authentication > Sign-in method: Email/Password must be enabled.
+- Firebase Authentication > Settings > Authorized domains: include mrerroryt.github.io.
+- Firestore collection `admin`: owner document ID must be the owner's Firebase Auth UID and contain role = "owner" (string).
+- Publish firestore.rules in Firestore Database > Rules.
+- Keep using the existing Firebase project/config in app.js. Do not paste passwords or service-account keys into public files.
+
+SESSION FIX
+This build explicitly sets Firebase browserLocalPersistence and restores the member/owner dashboard with onAuthStateChanged after a page reload. It persists only in the same browser profile; clearing site data, private/incognito mode, or explicitly logging out ends the session.
+
+DESIGN
+- Cherry blossom effect is limited to the login page.
+- Dashboard uses dark emerald, black and champagne gold with floating dollar-symbol decoration.
+- No ratings, reviews, rating page or rating chart are included.
+- BigBasket panel is a harmless visual simulation only; it does not scan devices, run malware or access accounts.

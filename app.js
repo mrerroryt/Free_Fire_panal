@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, serverTimestamp, Timestamp, runTransaction, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, serverTimestamp, Timestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD_Ya9TNyqCDcMwRYrfUl7UudzpUNdji5c",
@@ -11,7 +11,9 @@ const firebaseConfig = {
   appId: "1:604192352317:web:ea7e18efb0f478e0e9e254",
   measurementId: "G-CLHFK71TXS"
 };
-const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);\n// Keep the signed-in session across refreshes on this browser.\nawait setPersistence(auth,browserLocalPersistence);
+const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
+// Explicitly keep Firebase sign-in across refreshes in this browser.
+const authReady=setPersistence(auth,browserLocalPersistence);
 // Firebase is configured in this build. If startup fails, the browser console will show the exact Firebase error.
 const $=id=>document.getElementById(id);
 const LOGIN_DOMAIN="@members.mikuportal.com";
@@ -31,6 +33,7 @@ $("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();say("authMessage","Verifying ID and password…");
  const id=$("loginId").value.trim();
  try{
+  await authReady;
   const cred=await signInWithEmailAndPassword(auth,emailFor(id),$("loginPassword").value);
   const uid=cred.user.uid, ownerSnap=await getDoc(doc(db,"admin",uid));
   if(mode==="admin"){
@@ -58,8 +61,9 @@ $("loginForm").addEventListener("submit",async e=>{
 });
 
 function openDashboard(id,isOwner,d={}){
+ document.body.classList.add("inside-portal");
  hide("authView");show("dashboardView");$("welcomeName").textContent=id;
- if(isOwner){$("membershipInfo").textContent="Owner account · Full member management";show("adminTools");hide("memberStatus");$("reviewForm").classList.add("hidden");loadMembers();loadAdminReviews();}
+ if(isOwner){$("membershipInfo").textContent="Owner account · Full member management";show("adminTools");hide("memberStatus");loadMembers();}
  else{
   hide("adminTools");show("memberStatus");
   $("membershipInfo").textContent="Member access · Your private portal";
@@ -74,7 +78,7 @@ function updateCountdown(expiry){
  $("countdown").textContent=left<=0?"EXPIRED":`${days}D ${hours}H`;
  if(left<=0){$("statusTitle").textContent="Membership expired";$("statusDetail").textContent="Contact the portal owner to renew access.";}
 }
-$("logoutBtn").addEventListener("click",async()=>{await signOut(auth);hide("dashboardView");show("authView");$("loginPassword").value="";});
+$("logoutBtn").addEventListener("click",async()=>{await signOut(auth);document.body.classList.remove("inside-portal");hide("dashboardView");show("authView");$("loginPassword").value="";});
 
 $("createMemberForm").addEventListener("submit",async e=>{
  e.preventDefault();say("adminMessage","Creating member ID…");
@@ -134,69 +138,37 @@ $("demoToggle").addEventListener("change",e=>$("bigbasketLink").classList.toggle
 $("instamartBtn").addEventListener("click",()=>alert("Instamart — Coming Soon"));
 $("freefireBtn").addEventListener("click",()=>alert("Please contact your portal owner for Free Fire access."));
 
-// Restore the existing Firebase login after a refresh (initial auth event only).
-let initialAuthCheck=true;
-onAuthStateChanged(auth,async user=>{
- if(!initialAuthCheck)return;
- initialAuthCheck=false;
- if(!user)return;
- try{
-  const owner=await getDoc(doc(db,"admin",user.uid));
-  if(owner.exists()&&owner.data().role==="owner"){openDashboard(user.email||"Owner",true);return;}
-  const ref=doc(db,"members",user.uid),snap=await getDoc(ref);
-  if(!snap.exists()||snap.data().status!=="active"){await signOut(auth);return;}
-  let d=snap.data();
-  if(!d.firstLoginAt){
-   await runTransaction(db,async tx=>{const fresh=await tx.get(ref);if(!fresh.data().firstLoginAt){const now=Timestamp.now();tx.update(ref,{firstLoginAt:serverTimestamp(),expiresAt:Timestamp.fromMillis(now.toMillis()+30*86400000)});}});
-   d=(await getDoc(ref)).data();
-  }
-  if(d.expiresAt&&d.expiresAt.toMillis()<=Date.now()){await signOut(auth);return;}
-  openDashboard(d.username||user.email||"Member",false,d);
- }catch(e){console.error("Session restore failed:",e);await signOut(auth);}
-});
 
-let presenceTimer=null;
-async function refreshOnlineCount(){
- try{
-  const snap=await getDocs(collection(db,"presence")),cutoff=Date.now()-120000;
-  let count=0;snap.forEach(s=>{const t=s.data().lastSeen?.toMillis?.();if(t&&t>cutoff)count++;});
-  $("onlineCount").textContent=count;if($("adminOnlineCount"))$("adminOnlineCount").textContent=count;
- }catch(e){console.warn("Presence count unavailable:",e.message);}
-}
-function startPresence(uid){
- if(!uid)return;
- const ping=()=>setDoc(doc(db,"presence",uid),{lastSeen:serverTimestamp()},{merge:true}).then(refreshOnlineCount).catch(e=>console.warn("Presence:",e.message));
- ping();if(presenceTimer)clearInterval(presenceTimer);presenceTimer=setInterval(ping,45000);
-}
-async function loadReviews(){
- try{
-  const snap=await getDocs(query(collection(db,"reviews"),where("status","==","approved"))),approved=[];
-  snap.forEach(s=>{const d=s.data();if(d.status==="approved")approved.push({id:s.id,...d});});
-  approved.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
-  const avg=approved.length?approved.reduce((n,r)=>n+Number(r.score||0),0)/approved.length:0;
-  $("realRating").textContent=approved.length?avg.toFixed(1)+"/5":"—";
-  $("ratingStars").textContent=approved.length?"★".repeat(Math.round(avg))+"☆".repeat(5-Math.round(avg)):"☆☆☆☆☆";
-  $("ratingCount").textContent=approved.length+" verified reviews";
-  const distribution=[5,4,3,2,1].map(score=>({score,count:approved.filter(r=>Number(r.score)===score).length}));
-  $("ratingChart").innerHTML="<small>VERIFIED RATING DISTRIBUTION</small>"+distribution.map(x=>`<div class="rating-bar-row"><span>${x.score} ★</span><div><i style="width:${approved.length?x.count/approved.length*100:0}%"></i></div><b>${x.count}</b></div>`).join("");
-  $("reviewsList").innerHTML=approved.length?approved.slice(0,8).map(r=>`<article class="review-item"><b>${escapeHtml(r.username||"Member")}</b><span>${"★".repeat(Number(r.score))}${"☆".repeat(5-Number(r.score))}</span><p>${escapeHtml(r.text||"")}</p></article>`).join(""):"<p class='muted'>No approved reviews yet. Be the first to share feedback.</p>";
-  if($("adminReviewCount"))$("adminReviewCount").textContent=approved.length;
-  if($("adminRatingAvg"))$("adminRatingAvg").textContent=approved.length?avg.toFixed(1)+"/5":"—";
- }catch(e){$("reviewsList").textContent="Reviews are temporarily unavailable.";console.warn(e);}
-}
-$("reviewForm").addEventListener("submit",async e=>{
- e.preventDefault();const user=auth.currentUser;if(!user){say("reviewMessage","Please sign in again.",true);return;}
- try{
-  const profile=await getDoc(doc(db,"members",user.uid));
-  await addDoc(collection(db,"reviews"),{uid:user.uid,username:profile.data()?.username||"Member",score:Number($("reviewScore").value),text:$("reviewText").value.trim(),status:"pending",createdAt:serverTimestamp()});
-  $("reviewText").value="";say("reviewMessage","Thanks! Your review was submitted for owner approval.");
- }catch(err){say("reviewMessage",err.message||"Could not submit review.",true);}
-});
-async function loadAdminReviews(){
- try{
-  const snap=await getDocs(collection(db,"reviews")),rows=[];
-  snap.forEach(s=>rows.push({id:s.id,...s.data()}));
-  $("adminReviewsList").innerHTML=rows.length?rows.map(r=>`<div class="review-admin-row"><div><b>${escapeHtml(r.username||"Member")}</b> · ${"★".repeat(Number(r.score||0))}<p>${escapeHtml(r.text||"")}</p><small>${escapeHtml(r.status||"pending")}</small></div><div><button class="action-btn" data-review="${r.id}" data-status="approved">Approve</button><button class="action-btn" data-review="${r.id}" data-status="hidden">Hide</button></div></div>`).join(""):"<p class='muted'>No submitted reviews yet.</p>";
-  $("adminReviewsList").querySelectorAll("[data-review]").forEach(btn=>btn.addEventListener("click",async()=>{try{await updateDoc(doc(db,"reviews",btn.dataset.review),{status:btn.dataset.status});await loadAdminReviews();await loadReviews();}catch(e){say("adminMessage",e.message,true);}}));
- }catch(e){$("adminReviewsList").textContent=e.message;}
-}
+// Restore the signed-in dashboard after reload. The first auth callback is the persisted session check.
+let firstAuthCheck = true;
+authReady.then(() => onAuthStateChanged(auth, async user => {
+  if (firstAuthCheck) {
+    firstAuthCheck = false;
+    if (!user) return;
+    try {
+      const ownerSnap = await getDoc(doc(db, "admin", user.uid));
+      if (ownerSnap.exists() && ownerSnap.data().role === "owner") {
+        openDashboard(user.email || "Owner", true);
+        return;
+      }
+      const memberRef = doc(db, "members", user.uid);
+      const memberSnap = await getDoc(memberRef);
+      if (!memberSnap.exists()) throw new Error("Member profile not found. Please contact the owner.");
+      const member = memberSnap.data();
+      if (member.status !== "active") throw new Error("This member ID is inactive or banned.");
+      if (member.expiresAt && member.expiresAt.toMillis() <= Date.now()) throw new Error("Your 30-day membership has expired.");
+      openDashboard(member.username || user.email || "Member", false, member);
+    } catch (err) {
+      await signOut(auth);
+      document.body.classList.remove("inside-portal");
+      show("authView"); hide("dashboardView");
+      say("authMessage", err.message || "Could not restore your session. Please sign in again.", true);
+    }
+    return;
+  }
+  // A later null event means the user explicitly signed out.
+  if (!user) {
+    document.body.classList.remove("inside-portal");
+    show("authView"); hide("dashboardView");
+  }
+})).catch(err => say("authMessage", "Session setup failed: " + (err.message || "Please reload the page."), true));

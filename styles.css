@@ -47,47 +47,15 @@ footer{border-top:1px solid rgba(241,220,228,.7);margin-top:24px}
 @media(max-width:760px){.topbar{padding-bottom:13px}.auth-grid{padding-bottom:10px}.service-card:hover{transform:translateY(-2px)}.glass:hover{box-shadow:var(--shadow-soft)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
-/* MIKU premium sage + champagne refresh */
-:root{--pink:#dcebdc;--pink2:#f3efd5;--deep:#597b55;--ink:#26372a;--muted:#778575;--line:#dce6d7;--wash:#f6f8ef;--white:#fff}
-body{background:radial-gradient(ellipse at 10% 8%,#e7f1df 0,transparent 36%),radial-gradient(ellipse at 90% 85%,#fff1c9 0,transparent 34%),linear-gradient(135deg,#fbfcf7,#f3f6eb);color:var(--ink)}
-.petal-layer{opacity:.18;background-image:radial-gradient(ellipse 5px 8px at 20px 20px,#c5d8b7 0 60%,transparent 65%),radial-gradient(ellipse 4px 7px at 100px 80px,#eadca9 0 60%,transparent 65%)}
-.brand-flower{color:#b99b43}.top-chip,.owner-pill{border-color:#e5dfc2;color:#6c7d4e;background:#ffffffe0}
-.top-chip i,.eyebrow span,.simulation-label i{background:#a7bf8a;box-shadow:0 0 0 4px #edf3e6}
-.eyebrow,.card-kicker,.hero-caption,.section-label,.service-number,.stat small{color:#74864e}
-.hero h1 em,.dash-heading h1 em{color:#718b55}.hero-flower{color:#d8e5c9;text-shadow:0 15px 45px #b9c9a8}
-.circuit{border-color:#d8dfc4}.circuit:after,.circuit:before{background:#bca65a}
-.glass{border-color:#e3e7d4;box-shadow:0 22px 65px #516d3514}
-.login-tabs{background:#f0f4e8}.tab.active{color:#5d774a;box-shadow:0 4px 15px #718b5518}
-input:not([type=checkbox]),select,textarea{border-color:#dce6d7;background:#fffefa;color:var(--ink)}
-input:focus,select:focus,textarea:focus{border-color:#a9bd85;box-shadow:0 0 0 3px #edf3e5}
-.btn-main{background:linear-gradient(120deg,#829e68,#b59b4d);box-shadow:0 9px 23px #829e682b}
-.btn-quiet{border-color:#dce6d7;background:#fbfcf7;color:#647d4d}
-.status-strip{border-color:#dce6d7;background:#f8fbf3}.countdown{color:#718b55}
-.stat{border-color:#e1e7d8;background:#fcfdf8}.stat b{color:#6c8650}
-.create-form{background:#f7f9f0;border-color:#dce6d7}
-.online-pill{display:grid;grid-template-columns:9px auto;align-items:center;gap:0 8px;border:1px solid #dce6d7;border-radius:16px;padding:10px 14px;background:#f8fbf3;min-width:92px}
-.online-pill i{width:8px;height:8px;background:#50a878;border-radius:50%;grid-row:span 2;box-shadow:0 0 0 4px #e5f2e8}
-.online-pill b{font:700 21px 'Playfair Display',serif;color:#587a50}.online-pill small{font-size:8px;letter-spacing:1.5px;color:#778575}
-.live-card,.reviews-card{padding:22px;margin:0 0 20px}
-.live-head,.review-head{display:flex;justify-content:space-between;align-items:center;gap:15px}
-.live-head h2,.review-head h2{font:700 25px 'Playfair Display',serif;margin:6px 0}
-.rating-summary{text-align:right;min-width:112px}.rating-summary b{display:block;font:700 26px 'Playfair Display',serif;color:#728b4f}.rating-summary span{display:block;color:#c09b35;letter-spacing:2px}.rating-summary small{font-size:9px;color:var(--muted)}
-.review-form{display:grid;grid-template-columns:1fr 2fr auto;gap:10px;align-items:end;margin:18px 0 8px}
-.review-form label{font-size:9px;letter-spacing:1px;font-weight:800;color:#71815d}
-.review-form select,.review-form textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;background:#fffefa}
-.review-form textarea{min-height:44px;resize:vertical}
-.reviews-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
-.review-item{border:1px solid var(--line);border-radius:13px;padding:13px;background:#fcfdf8}
-.review-item b{font-size:12px}.review-item span{float:right;color:#b99a3e}.review-item p{font-size:11px;color:var(--muted);line-height:1.6;margin:8px 0 0;overflow-wrap:anywhere}
-.demo-rating-note{font-size:8px;letter-spacing:1px;color:#879078;margin-top:15px}
-.review-admin{border:1px solid var(--line);border-radius:14px;padding:14px;margin:16px 0;background:#fbfcf7}
-.review-admin h3{margin:0 0 6px}.review-admin-row{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:12px 0;font-size:11px}
-.review-admin-row p{margin:5px 0;color:var(--muted)}.review-admin-row small{color:#8a8f77}
-@media(max-width:700px){.review-form{grid-template-columns:1fr}.reviews-list{grid-template-columns:1fr}.live-head,.review-head{align-items:flex-start}.review-head{flex-direction:column}.rating-summary{text-align:left}}
 
-.rating-chart{max-width:560px;border:1px solid var(--line);border-radius:13px;padding:13px;margin:14px 0;background:#fcfdf8}
-.rating-chart>small{font-size:8px;letter-spacing:1.3px;color:#788568;font-weight:800}
-.rating-bar-row{display:grid;grid-template-columns:38px 1fr 22px;align-items:center;gap:9px;margin-top:8px;font-size:10px;color:var(--muted)}
-.rating-bar-row>div{height:7px;background:#edf1e7;border-radius:9px;overflow:hidden}
-.rating-bar-row i{display:block;height:100%;background:linear-gradient(90deg,#829e68,#c2a653);border-radius:9px}
-.rating-bar-row b{text-align:right;color:var(--ink)}
+/* MIKU PORTAL — dashboard-only emerald, black and champagne-gold theme */
+body.inside-portal{background:radial-gradient(ellipse at 12% 0%,#123b2b 0,transparent 38%),radial-gradient(ellipse at 92% 80%,#30240d 0,transparent 34%),linear-gradient(135deg,#050b08,#0a1711 55%,#10140d);color:#f3f4e9}
+body.inside-portal .petal-layer{display:none}
+.money-layer{display:none;position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;opacity:.20}
+body.inside-portal .money-layer{display:block}
+.money-layer span{position:absolute;top:-12vh;color:#e7c66f;font:700 24px Georgia,serif;text-shadow:0 0 18px #d8b85b88;animation:moneyDrift 19s linear infinite}
+.money-layer span:nth-child(1){left:5%;animation-delay:-2s}.money-layer span:nth-child(2){left:14%;font-size:17px;animation-delay:-11s;animation-duration:23s}.money-layer span:nth-child(3){left:25%;animation-delay:-7s}.money-layer span:nth-child(4){left:36%;font-size:20px;animation-delay:-15s;animation-duration:25s}.money-layer span:nth-child(5){left:47%;animation-delay:-4s}.money-layer span:nth-child(6){left:58%;font-size:18px;animation-delay:-18s;animation-duration:22s}.money-layer span:nth-child(7){left:69%;animation-delay:-9s}.money-layer span:nth-child(8){left:78%;font-size:20px;animation-delay:-13s;animation-duration:24s}.money-layer span:nth-child(9){left:88%;animation-delay:-5s}.money-layer span:nth-child(10){left:96%;font-size:17px;animation-delay:-16s;animation-duration:21s}.money-layer span:nth-child(11){left:42%;font-size:16px;animation-delay:-20s}.money-layer span:nth-child(12){left:63%;font-size:22px;animation-delay:-1s}
+@keyframes moneyDrift{0%{transform:translate3d(0,-5vh,0) rotate(-18deg);opacity:0}12%{opacity:.9}85%{opacity:.6}100%{transform:translate3d(35px,120vh,0) rotate(28deg);opacity:0}}
+body.inside-portal .shell{z-index:1}body.inside-portal .topbar{border-color:#b99a4c55}body.inside-portal .brand{color:#f4e7bd}body.inside-portal .brand-flower{color:#e4c46c;filter:drop-shadow(0 0 10px #d8b85b88)}body.inside-portal .brand small,body.inside-portal .muted{color:#b7c4b8}body.inside-portal .top-chip,body.inside-portal .owner-pill{background:#13251b;border-color:#c6a64d66;color:#e8cf83}body.inside-portal .top-chip i,body.inside-portal .eyebrow span{background:#d9bd67;box-shadow:0 0 0 4px #d9bd6725}
+body.inside-portal .eyebrow,body.inside-portal .card-kicker,body.inside-portal .section-label,body.inside-portal .service-number,body.inside-portal .stat small{color:#dfc779}body.inside-portal .dash-heading h1 em{color:#e9cf7d}body.inside-portal .glass{background:linear-gradient(145deg,#102219ed,#101a14ed);border-color:#c3a44b55;box-shadow:0 24px 65px #0008}body.inside-portal .btn-main{background:linear-gradient(115deg,#c6a64d,#f0d98a 48%,#9e7d2e);color:#142017;box-shadow:0 10px 26px #c6a64d30}body.inside-portal .btn-quiet{background:#13251b;border-color:#c3a44b66;color:#f0d98a}body.inside-portal .status-strip{background:#102219;border-color:#c3a44b55;color:#f3f4e9}body.inside-portal .status-strip small{color:#b7c4b8}body.inside-portal .countdown{color:#e9cf7d}body.inside-portal .stat,body.inside-portal .create-form{background:#0b1710;border-color:#c3a44b44}body.inside-portal .stat b{color:#f0d98a}body.inside-portal input:not([type=checkbox]){background:#08120c;border-color:#526c58;color:#f5f1df}body.inside-portal input::placeholder{color:#829587}body.inside-portal input:focus{border-color:#d9bd67;box-shadow:0 0 0 3px #d9bd6725}body.inside-portal .create-form label{color:#d7c47e}body.inside-portal .member-tools h3,body.inside-portal .admin-card h2,body.inside-portal .demo-card h2,body.inside-portal .demo-copy h3{color:#f1e8ce}body.inside-portal th{color:#d9bd67}body.inside-portal td{border-color:#c3a44b30;color:#e8ecdf}body.inside-portal .action-btn{background:#17291d;border-color:#b99a4c66;color:#efd982}body.inside-portal .service-card{background:linear-gradient(145deg,#12251a,#0a140e);border-color:#c3a44b66;color:#f4efdd;box-shadow:0 15px 38px #0005}body.inside-portal .service-card.featured{background:linear-gradient(145deg,#1b3323,#102017)}body.inside-portal .service-card:before{background:radial-gradient(circle,#c6a64d35,transparent 70%)}body.inside-portal .service-card small{color:#b7c4b8}body.inside-portal .card-arrow{color:#e9cf7d}body.inside-portal .section-label i{background:#c3a44b55}body.inside-portal .orbit{border-color:#b89a4c}body.inside-portal .orbit-dot{background:#e1c46d;box-shadow:0 0 0 6px #e1c46d22}body.inside-portal .core{background:linear-gradient(145deg,#243b29,#101a13);border-color:#d2b65d;box-shadow:0 0 0 12px #14251a,0 0 48px #d9bd6740}body.inside-portal .core span,body.inside-portal .core b{color:#e9cf7d}body.inside-portal .core small,body.inside-portal .demo-copy p{color:#b7c4b8}body.inside-portal .simulation-label{color:#e9cf7d}body.inside-portal .progress-track{background:#24372a}body.inside-portal .progress-track span{background:linear-gradient(90deg,#92752e,#f0d98a)}body.inside-portal .progress-meta,body.inside-portal .demo-disclaimer{color:#a9b7a9;border-color:#c3a44b44}body.inside-portal footer{border-color:#c3a44b44;color:#aebba9}
+@media(max-width:760px){body.inside-portal .dash-heading h1{font-size:32px}.money-layer span{font-size:18px}}
